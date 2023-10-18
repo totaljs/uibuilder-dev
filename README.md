@@ -15,7 +15,7 @@
 	- `cd uibuidlerdev`
 	- `npm install`
 
-__How to start it?
+__How to start it?__
 
 - open terminal/command-line:
 	- `cd uibuidlerdev`
