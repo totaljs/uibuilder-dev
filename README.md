@@ -1,6 +1,6 @@
 # UI Builder: DEV environment
 
-- [![Made in EU](https://cdn.componentator.com/eu-small.png)](https://european-union.europa.eu/)
+[![Made in EU](https://cdn.componentator.com/eu-small.png)](https://european-union.europa.eu/)
 
 - [Website](https://www.totaljs.com/designer/)
 - [__Documentation__](https://docs.totaljs.com/uibuilder/)
