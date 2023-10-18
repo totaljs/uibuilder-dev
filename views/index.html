@@ -1,0 +1,175 @@
+@{layout('')}
+@{title('UI Builder')}
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=10" />
+	<meta name="format-detection" content="telephone=no" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
+	<meta name="robots" content="all,follow" />
+	<link rel="stylesheet" href="https://cdn.componentator.com/spa.min@19.css" />
+	<script src="https://cdn.componentator.com/spa.min@19.js"></script>
+	<style>
+		html,body { margin: 0; padding: 0; overflow: hidden; }
+		.controls { float: right; }
+		.icon { float: left; width: 40px; height: 30px; font-size: 30px; margin: 2px 3px 0; line-height: 0; }
+		.listing2 figure { min-height: 40px; }
+		.listing2 .template { background-color: rgba(250,230,207,0.5); }
+		.listing2 .template:hover { background-color: rgba(250,230,207,0.8); }
+	</style>
+	@{import('meta', 'head', 'ui.js', 'favicon.ico')}
+	<script src="@{REPO.ui}"></script>
+</head>
+<body>
+
+	<ui-component name="LAZY filesaver"></ui-component>
+	<ui-component name="LAZY sounds"></ui-component>
+	<ui-component name="LAZY menu"></ui-component>
+	<ui-component name="LAZY message"></ui-component>
+	<ui-component name="LAZY approve"></ui-component>
+	<ui-component name="exec"></ui-component>
+	<ui-component name="locale" config="language:eu"></ui-component>
+
+	<ui-plugin path="uibuilderdata">
+		<ui-component name="uidesigner" path="?.data" config="render:?/render;publish:?/publish;save:?/save;url:@{'%uibuilder_designer'}"></ui-component>
+		<div class="padding">
+			<div class="m" style="font-size:13px"><a href="/preview/" target="_blank"><i class="ti ti-external mr5"></i>@(Preview)</a></div>
+			<ui-bind path="?.templates" config="template" class="block listing2 grid-4">
+				<script type="text/html">
+				{{ foreach m in value }}
+				<figure class="exec template" data-exec="?/create" data-id="{{ m.id }}">
+					<section>
+						<div class="icon"{{ if m.color }} style="color:{{ m.color }}"{{ fi }}>
+							<i class="{{ m.icon }}"></i>
+						</div>
+						<div>
+							<div>{{ m.name }}</div>
+							<div class="help nmt">{{ m.type }}</div>
+						</div>
+					</section>
+				</figure>
+				{{ end }}
+				</script>
+			</ui-bind>
+			<hr />
+			<ui-bind path="?.items" config="template" class="block listing2 grid-4">
+				<script type="text/html">
+				{{ foreach m in value }}
+				<figure class="exec" data-exec="?/edit" data-id="{{ m.id }}">
+					<section>
+						<span class="controls exec" data-exec="?/options" data-prevent="true"><i class="ti ti-cog"></i></span>
+						<div class="icon"{{ if m.color }} style="color:{{ m.color }}"{{ fi }}>
+							<i class="{{ m.icon }}"></i>
+						</div>
+						<div>
+							<div>{{ m.name }}</div>
+							<div class="help nmt">{{ m.type }}</div>
+						</div>
+					</section>
+				</figure>
+				{{ end }}
+				</script>
+			</ui-bind>
+		</div>
+	</ui-plugin>
+
+	<form id="uibuildrenderer" method="POST" target="_blank">
+		<input name="data" type="hidden" />
+	</form>
+
+	<script>
+
+		DEF.api = '/admin/';
+
+		PLUGIN('uibuilderdata', function(exports) {
+
+			exports.refresh = function() {
+				exports.ajax('GET /uibuilder/', function(response) {
+					response.quicksort('name');
+					exports.set('items', response);
+				});
+			};
+
+			exports.create = function(el) {
+				var id = ATTRD(el);
+				exports.ajax('GET /templates/{0}.json @showloading ERROR'.format(id), function(response) {
+					response.id = Date.now().toString(36);
+					exports.set('data @hideloading', response);
+				});
+			};
+
+			exports.edit = function(el) {
+				var id = ATTRD(el);
+				exports.ajax('GET /data/{0}.json @showloading ERROR'.format(id), 'data @hideloading');
+			};
+
+			exports.render = function(data) {
+				var form = $('#uibuildrenderer');
+				form.attr('action', 'https://preview.totaljs.com');
+				form.find('input').val(JSON.stringify(data));
+				form.submit();
+			};
+
+			exports.save = function(data) {
+				SETTER('sounds/play', 'badge');
+				SETTER('notify/success', '@(UI design "{name}" has been saved)'.args(data, 'escape'));
+				exports.ajax('POST /uibuilder/ @showloading ERROR', data, exports.refresh);
+			};
+
+			exports.publish = function(data) {
+				SETTER('sounds/play', 'badge');
+				SETTER('notify/success', '@(UI design "{name}" has been compiled)'.args(data, 'escape'));
+				exports.ajax('POST /uibuilder/ @showloading ERROR', data, exports.refresh);
+			};
+
+			exports.remove = function(el) {
+				SETTER('approve/show', '@(Are you sure you want to remove selected UI design?)', ':ti ti-remove: @(Remove)', function() {
+					exports.ajax(QUERIFY('DELETE /uibuilder/', { id: ATTRD(el) }) + ' @showloading ERROR', () => exports.refresh());
+				});
+			};
+
+			exports.options = function(el) {
+
+				var id = ATTRD(el);
+				var opt = {};
+				opt.element = el;
+				opt.align = 'right';
+				opt.items = [];
+				opt.items.push({ id: 'edit', name: '@(Edit)', icon: 'ti ti-pencil' });
+				opt.items.push('-');
+				opt.items.push({ id: 'downloadsource', name: '@(Download source)', icon: 'ti ti-variables' });
+				opt.items.push({ id: 'downloadcompiled', name: '@(Download render)', icon: 'ti ti-download' });
+				opt.items.push('-');
+				opt.items.push({ id: 'remove', name: '@(Remove)', icon: 'ti ti-trash red' });
+				opt.callback = function(selected) {
+
+					switch (selected.id) {
+						case 'edit':
+							exports.edit(el);
+							break;
+						case 'downloadsource':
+						case 'downloadcompiled':
+							var compiled = selected.id === 'downloadcompiled' ? '_compiled' : '';
+							AJAX('GET /data/{0}{1}.json?download=1'.format(id, compiled), function(response) {
+								SETTER('filesaver/save', id + compiled + '.json', JSON.stringify(response, null, '\t'), 'json');
+							});
+							break;
+						case 'remove':
+							exports.remove(el);
+							break;
+					}
+				};
+				SETTER('menu/show', opt);
+			};
+
+			exports.refresh();
+			exports.ajax('GET /templates.json', 'templates');
+
+		});
+
+	</script>
+
+</body>
+</html>

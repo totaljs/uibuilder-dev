@@ -1,0 +1,127 @@
+@{layout('')}
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>@(Preview compiled UI designs)</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+	<meta http-equiv="X-UA-Compatible" content="IE=10" />
+	<meta name="robots" content="all,follow" />
+	<link href="https://cdn.componentator.com/spa.min@19.css" rel="stylesheet" type="text/css" />
+	<script src="https://cdn.componentator.com/spa.min@19.js"></script>
+	<script src="https://cdn.componentator.com/uibuilder.min@1.js"></script>
+	<script src="@{REPO.ui}"></script>
+	<style>
+		html,body { overflow: hidden; margin: 0; padding: 0; }
+	</style>
+	@{import('favicon.ico')}
+</head>
+<body>
+
+	<ui-component name="exec"></ui-component>
+	<ui-component name="locale" config="requests:1"></ui-component>
+	<ui-component name="errorhandler"></ui-component>
+
+	<ui-component name="LAZY menu" config="style:2"></ui-component>
+	<ui-component name="LAZY icons"></ui-component>
+	<ui-component name="LAZY directory" config="placeholder:@(Search)"></ui-component>
+	<ui-component name="LAZY approve" config="cancel:@(Cancel)"></ui-component>
+	<ui-component name="LAZY message" config="style:2"></ui-component>
+	<ui-component name="LAZY notify"></ui-component>
+	<ui-component name="LAZY colorpicker"></ui-component>
+	<ui-component name="LAZY datepicker" config="today:@(Set today)"></ui-component>
+	<ui-component name="LAZY floatinginput"></ui-component>
+	<ui-component name="LAZY clipboard"></ui-component>
+
+	<ui-component name="navlayout" path="common.menu" config="parent:window;hide:xs;width:200" class="invisible">
+
+		<section style="border-right:1px solid #E0E0E0">
+			<ui-bind path="common.items" config="template" class="block" child="nav">
+				<div style="padding:15px 20px 10px" class="bg-smoke">
+					<div style="font-size:13px"><a href="/" target="_blank"><i class="ti ti-external mr5"></i>@(Designer)</a></div>
+					<p class="nmb mt5">@(In the list below you can find all the compiled UI designs.)</p>
+				</div>
+				<hr class="nmb nmt" />
+				<ui-component name="selected" path="common.selected" config="selector:.exec;attr:id">
+					<div class="nav" style="background:none">
+						<nav>
+							<script type="text/html">
+								{{ foreach m in value }}
+								<div data-id="{{ m.id }}" class="exec" data-exec="downloadui"><i class="ti ti-angle-right"></i>{{ m.name }}</div>
+								{{ end }}
+							</script>
+						</nav>
+					</div>
+				</ui-component>
+			</ui-bind>
+		</section>
+
+		<main>
+			<ui-component name="viewbox" config="parent:window">
+				<div id="container"></div>
+			</ui-component>
+		</main>
+
+	</ui-component>
+
+	<script>
+
+		var days = '@(SU,MO,TU,WE,TH,FR,SO)'.split(',');
+		var months = '@(January,February,March,April,May,June,July,August,September,October,November,December)'.split(',');
+		var common = { items: [], selected: '' };
+
+		for (var i = 0; i < DAYS.length; i++)
+			DAYS[i] = days[i];
+
+		for (var i = 0; i < MONTHS.length; i++)
+			MONTHS[i] = months[i];
+
+		function loadui(response) {
+
+			if (W.app) {
+				W.app.remove();
+				W.app = null;
+				setTimeout(function() {
+					while (container.children.length)
+						container.removeChild(container.children[0]);
+					loadui(response);
+				}, 500);
+				return;
+			}
+
+			if (response && response.id) {
+
+				var opid = NAV.query.openplatformid;
+				var ssid = NAV.query.ssid;
+
+				response.urlify = function(url) {
+					return (ssid || opid) ? QUERIFY(url, { openplatformid: opid, ssid: ssid }) : url;
+				};
+
+				UIBuilder.view = function(id, query, callback) {
+					AJAX('GET ' + response.querify(id, query), callback);
+				};
+
+				var div = document.createElement('DIV');
+				container.appendChild(div);
+
+				document.title = response.name;
+				UIBuilder.build(div, response, function(response) {
+					W.app = response;
+				});
+			}
+		}
+
+		function downloadui(el) {
+			var id = ATTRD(el);
+			SET('common.selected', id);
+			AJAX('GET /data/{0}_compiled.json ERROR'.format(id), loadui);
+		}
+
+		AJAX('GET /uibuilder/?compiled=1', 'common.items');
+
+	</script>
+
+</body>
+</html>

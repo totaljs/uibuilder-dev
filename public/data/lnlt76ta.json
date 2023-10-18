@@ -1,0 +1,58 @@
+{
+	"name": "Dashboard",
+	"description": "",
+	"icon": "ti ti-totaljs",
+	"version": "0.0.1",
+	"type": "dashboard",
+	"css": ".CLASS:root{--radius:5px}\n.CLASS{padding:0 20px 50px;width:100%;max-width:1600px;margin:30px auto}\n.CLASS .UI_gap{margin-bottom:var(--margin)}\n.CLASS .UI_label{font-size:11px;color:#B0B0B0;margin-bottom:5px}\n.CLASS .UI_label i{margin-right:5px}\n.CLASS .UI_border{border:1px solid #E0E0E0;padding:var(--gap);border-radius:var(--radius)}",
+	"editor": {
+		"download": false,
+		"paths": "",
+		"codes": "",
+		"upload": ""
+	},
+	"components": {
+		"db": "/db.json"
+	},
+	"children": [
+		[
+			{
+				"children": [
+					[
+						{
+							"children": [
+								[],
+								[],
+								[],
+								[]
+							],
+							"id": "2",
+							"component": "columns",
+							"config": {
+								"count": 4,
+								"countmd": 0,
+								"countsm": 0,
+								"countxs": 0,
+								"background": true,
+								"rounded": true,
+								"hidden": false,
+								"fractions": "1fr 1fr 1fr",
+								"name": "Columns"
+							},
+							"gap": true
+						}
+					]
+				],
+				"id": "root",
+				"component": "container",
+				"config": {
+					"name": "Container"
+				}
+			}
+		]
+	],
+	"inputs": [],
+	"outputs": [],
+	"args": {},
+	"id": "lnlt76ta"
+}

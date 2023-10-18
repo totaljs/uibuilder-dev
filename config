@@ -1,0 +1,3 @@
+allow_custom_titles   : true
+uibuilder_components  : https://cdn.componentator.com/uibuilder/app.json
+uibuilder_designer    : https://uibuilder.totaljs.com
