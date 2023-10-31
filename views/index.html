@@ -107,7 +107,7 @@
 
 			exports.render = function(data) {
 				var form = $('#uibuildrenderer');
-				form.attr('action', 'https://preview.totaljs.com');
+				form.attr('action', '/render/');
 				form.find('input').val(JSON.stringify(data));
 				form.submit();
 			};

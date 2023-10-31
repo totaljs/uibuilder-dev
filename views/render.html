@@ -1,0 +1,84 @@
+@{layout('')}
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>@(Loading UI design ...)</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+	<meta http-equiv="X-UA-Compatible" content="IE=10" />
+	<meta name="robots" content="all,follow" />
+	<link href="https://cdn.componentator.com/spa.min@19.css" rel="stylesheet" type="text/css" />
+	<script src="https://cdn.componentator.com/spa.min@19.js"></script>
+	<script src="https://cdn.componentator.com/uibuilder.min@1.js"></script>
+	<script src="@{REPO.ui}"></script>
+	<style>
+		html,body { overflow: hidden; margin: 0; padding: 0; }
+	</style>
+	@{import('favicon.ico')}
+</head>
+<body>
+
+	<ui-component name="exec"></ui-component>
+	<ui-component name="locale" config="requests:1"></ui-component>
+
+	<ui-component name="LAZY menu" config="style:2"></ui-component>
+	<ui-component name="LAZY icons"></ui-component>
+	<ui-component name="LAZY directory" config="placeholder:@(Search)"></ui-component>
+	<ui-component name="LAZY approve" config="cancel:@(Cancel)"></ui-component>
+	<ui-component name="LAZY message" config="style:2"></ui-component>
+	<ui-component name="LAZY notify"></ui-component>
+	<ui-component name="LAZY colorpicker"></ui-component>
+	<ui-component name="LAZY datepicker" config="today:@(Set today)"></ui-component>
+	<ui-component name="LAZY floatinginput"></ui-component>
+	<ui-component name="LAZY clipboard"></ui-component>
+
+	<div id="uibuilderdom"></div>
+
+	@{json(body.data || EMPTYOBJECT, 'renderdata')}
+
+	<script>
+		(function() {
+
+			var days = '@(SU,MO,TU,WE,TH,FR,SO)'.split(',');
+			var months = '@(January,February,March,April,May,June,July,August,September,October,November,December)'.split(',');
+
+			for (var i = 0; i < DAYS.length; i++)
+				DAYS[i] = days[i];
+
+			for (var i = 0; i < MONTHS.length; i++)
+				MONTHS[i] = months[i];
+
+			var response = PARSE(PARSE($('#renderdata').html()));
+			if (response && response.id) {
+
+				var opid = NAV.query.openplatformid;
+				var ssid = NAV.query.ssid;
+
+				response.urlify = function(url) {
+					return (ssid || opid) ? QUERIFY(url, { openplatformid: opid, ssid: ssid }) : url;
+				};
+
+				UIBuilder.view = function(id, query, callback) {
+					AJAX('GET ' + response.querify(id, query), callback);
+				};
+
+				document.title = response.name;
+
+				if (response.type !== 'flowboard') {
+					var com = document.createElement('ui-component');
+					com.setAttribute('name', 'viewbox');
+					com.setAttribute('config', 'parent:window;scrollbarshadow:1;visibleX:1;visibleY:1');
+					com.appendChild(uibuilderdom);
+					document.body.append(com);
+				}
+
+				UIBuilder.build('#uibuilderdom', response, function(response) {
+					W.app = response;
+				});
+			}
+		})();
+	</script>
+
+</body>
+</html>
